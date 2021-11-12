@@ -177,7 +177,7 @@ void generAnalyTable()
 
 int main()
 {
-	init();
+	init(); 
 	generaFirst();
 	generaFollow();
 	generAnalyTable();
