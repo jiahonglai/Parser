@@ -1,9 +1,11 @@
+#include "LexicalAnalysis.h"
 #include <iostream>
 #include <string>
 #include <queue>
 #include <map>
 #include <set>
 #include <vector>
+#define mp make_pair
 
 using namespace std;
 
@@ -12,6 +14,7 @@ map<string, vector<string>>production;
 map<string, set<string>>first;
 map<string, set<string>>follow;
 map<pair<string, string>, string>analyTable;
+vector<pair<string, string>>symbolTable; //·ûºÅ±í
 map<string, bool>terSymbol;
 map<string, bool>visit;
 map<string, int>preSize;
@@ -41,6 +44,7 @@ void dfsFirst(const string& x)
 	for (const auto& right : production[x])
 	{
 		string tmp = string(1, right[0]);
+
 		if (terSymbol[tmp] == true) first[x].insert(tmp);
 		else if (terSymbol[right] == true) first[x].insert(right);
 		else
@@ -48,6 +52,7 @@ void dfsFirst(const string& x)
 			int l = right.size();
 			int j = 0;
 			bool epsilon = true;
+
 			while (j < l)
 			{
 				tmp = string(1, right[j]);
@@ -60,7 +65,7 @@ void dfsFirst(const string& x)
 					}
 					if (first[tmp].size() == 0) dfsFirst(tmp);
 					first[x].insert(first[tmp].begin(), first[tmp].end());
-					if (first[tmp].find("¦Å") == first[tmp].end())
+					if (first[tmp].count("¦Å") == false)
 					{
 						epsilon = false;
 						break;
@@ -96,6 +101,7 @@ void dfsFollow(const string& x)
 		string tmp;
 		int l = right.size();
 		int j = 0;
+
 		while (j < l)
 		{
 			tmp = string(1, right[j]);
@@ -106,9 +112,11 @@ void dfsFollow(const string& x)
 					tmp += "'";
 					++j;
 				}
+
 				int k = j + 1;
 				string nonTerminal;
 				bool epsilon = true;
+
 				while (k < l)
 				{
 					nonTerminal = string(1, right[k]);
@@ -120,7 +128,7 @@ void dfsFollow(const string& x)
 							++k;
 						}
 						follow[tmp].insert(first[nonTerminal].begin(), first[nonTerminal].end());
-						if (first[nonTerminal].find("¦Å") == first[nonTerminal].end())
+						if (first[nonTerminal].count("¦Å") == false)
 						{
 							epsilon = false;
 							break;
@@ -146,6 +154,7 @@ void generaFollow()
 	follow["E"].insert("$");
 	preSize["E"] = 1;
 	bool flag = true;
+
 	while (flag)
 	{
 		flag = false;
@@ -162,23 +171,108 @@ void generaFollow()
 			preSize[i.first] = follow[i.first].size();
 		}
 	}
+
 	for (const auto& i : production)
 	{
-		if (follow[i.first].find("¦Å") != follow[i.first].end()) follow[i.first].erase("¦Å");
-		cout << " " << i.first << endl;
-		for (const auto& k : follow[i.first]) cout << k << endl;
+		if (follow[i.first].count("¦Å") == true) follow[i.first].erase("¦Å");
 	}
 }
 
 void generAnalyTable()
 {
+	for (const auto& i : production)
+	{
+		for (const auto& right : i.second)
+		{
+			string tmp = string(1, right[0]);
+			set<string>rightFirst;
+			bool epsilon = true;
 
+			if (terSymbol[tmp] == true)
+			{
+				rightFirst.insert(tmp);
+				if (tmp != "¦Å") epsilon = false;
+			}
+			else if (terSymbol[right] == true)
+			{
+				rightFirst.insert(right);
+				if (right != "¦Å") epsilon = false;
+			}
+			else
+			{
+				int l = right.size();
+				int j = 0;
+				while (j < l)
+				{
+					tmp = string(1, right[j]);
+					if (terSymbol[tmp] != true)
+					{
+						if (j + 1 < l && right[j + 1] == '\'')
+						{
+							tmp += "'";
+							++j;
+						}
+						rightFirst.insert(first[tmp].begin(), first[tmp].end());
+						if (first[tmp].count("¦Å") == false)
+						{
+							epsilon = false;
+							break;
+						}
+					}
+					else
+					{
+						rightFirst.insert(tmp);
+						epsilon = false;
+						break;
+					}
+					++j;
+				}
+			}
+
+			pair<string, string>p;
+			for (const auto& k : rightFirst)
+			{
+				if (k == "¦Å") continue;
+				p = mp(i.first, k);
+				analyTable[p] = i.first + "->" + right;
+			}
+			if (epsilon == true)
+			{
+				for (const auto& k : follow[i.first])
+				{
+					p = mp(i.first, k);
+					analyTable[p] = i.first + "->" + right;
+				}
+			}
+		}
+	}
+}
+
+void analyse(ifstream& infile)
+{
+	lexicalAnaly(infile, symbolTable);
+	for (const auto& i : symbolTable) cout << i.first << " " << i.second << endl;
 }
 
 int main()
 {
-	init(); 
+	init();
+
 	generaFirst();
+
 	generaFollow();
+
 	generAnalyTable();
+
+	ifstream infile("test5.txt");
+
+	if (!infile.is_open())
+	{
+		cout << "File Not Found£¡";
+		return 0;
+	}
+
+	analyse(infile);
+
+	return 0;
 }
