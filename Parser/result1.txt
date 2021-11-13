@@ -1,0 +1,14 @@
+栈             输入                          输出
+$E             num+num$                      E->TE'
+$E'T           num+num$                      T->FT'
+$E'T'F         num+num$                      F->num
+$E'T'num       num+num$                      匹配成功
+$E'T'          +num$                         T'->ε
+$E'            +num$                         E'->+TE'
+$E'T+          +num$                         匹配成功
+$E'T           num$                          T->FT'
+$E'T'F         num$                          F->num
+$E'T'num       num$                          匹配成功
+$E'T'          $                             T'->ε
+$E'            $                             E'->ε
+$              $                             匹配成功

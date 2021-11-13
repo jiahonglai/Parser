@@ -5,6 +5,8 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <stack>
+#include <iomanip>
 #define mp make_pair
 
 using namespace std;
@@ -234,14 +236,14 @@ void generAnalyTable()
 			{
 				if (k == "¦Å") continue;
 				p = mp(i.first, k);
-				analyTable[p] = i.first + "->" + right;
+				analyTable[p] = right;
 			}
 			if (epsilon == true)
 			{
 				for (const auto& k : follow[i.first])
 				{
 					p = mp(i.first, k);
-					analyTable[p] = i.first + "->" + right;
+					analyTable[p] = right;
 				}
 			}
 		}
@@ -251,7 +253,76 @@ void generAnalyTable()
 void analyse(ifstream& infile)
 {
 	lexicalAnaly(infile, symbolTable);
-	for (const auto& i : symbolTable) cout << i.first << " " << i.second << endl;
+	symbolTable.push_back(mp("$", "-"));
+
+	vector<string>analyStack;
+	analyStack.push_back("$");
+	analyStack.push_back("E");
+
+	int tableSize = symbolTable.size();
+	int i = 0;
+	pair<string, string>p;
+	cout.setf(ios::left);
+
+	cout << setw(15) << "Õ»" << setw(30) << "ÊäÈë" << "Êä³ö" << endl;
+	while (i < tableSize)
+	{
+		string output = "";
+
+		for (const auto& j : analyStack) output += j;
+		cout << setw(15) << output;
+		output = "";
+		for (int k = i; k < tableSize; ++k) output += symbolTable[k].first;
+		cout << setw(30) << output;
+
+		string stackTop = analyStack[analyStack.size() - 1];
+
+		if (stackTop == symbolTable[i].first)
+		{
+			cout << "Æ¥Åä³É¹¦";
+			++i;
+			analyStack.pop_back();
+		}
+		else
+		{
+			p = mp(stackTop, symbolTable[i].first);
+			if (analyTable.count(p) == true)
+			{
+				string tmp = analyTable[p];
+				int l = tmp.size() - 1;
+
+				cout << stackTop << "->" << tmp;
+				analyStack.pop_back();
+				if (terSymbol[tmp] == true)
+				{
+					if (tmp != "¦Å") analyStack.push_back(tmp);
+				}
+				else
+				{
+
+					while (l >= 0)
+					{
+						if (tmp[l] == '\'')
+						{
+							analyStack.push_back(tmp.substr(l - 1, 2));
+							--l;
+						}
+						else
+						{
+							analyStack.push_back(string(1, tmp[l]));
+						}
+						--l;
+					}
+				}
+			}
+			else
+			{
+				cout << "Æ¥ÅäÊ§°Ü";
+				return;
+			}
+		}
+		cout << endl;
+	}
 }
 
 int main()
@@ -265,7 +336,6 @@ int main()
 	generAnalyTable();
 
 	ifstream infile("test5.txt");
-
 	if (!infile.is_open())
 	{
 		cout << "File Not Found£¡";
@@ -274,5 +344,6 @@ int main()
 
 	analyse(infile);
 
+	infile.close();
 	return 0;
 }
