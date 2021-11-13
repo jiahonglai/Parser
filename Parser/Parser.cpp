@@ -246,6 +246,14 @@ void generAnalyTable()
 					analyTable[p] = right;
 				}
 			}
+			else
+			{
+				for (const auto& k : follow[i.first])
+				{
+					p = mp(i.first, k);
+					analyTable[p] = "synch";
+				}
+			}
 		}
 	}
 }
@@ -286,7 +294,7 @@ void analyse(ifstream& infile)
 		else
 		{
 			p = mp(stackTop, symbolTable[i].first);
-			if (analyTable.count(p) == true)
+			if (analyTable.count(p) == true && analyTable[p] != "synch")
 			{
 				string tmp = analyTable[p];
 				int l = tmp.size() - 1;
@@ -317,8 +325,17 @@ void analyse(ifstream& infile)
 			}
 			else
 			{
-				cout << "Æ¥ÅäÊ§°Ü";
-				return;
+				cout << "Æ¥ÅäÊ§°Ü,";
+				if (analyTable[p] == "synch")
+				{
+					cout << "µ¯³ö" << stackTop;
+					analyStack.pop_back();
+				}
+				else
+				{
+					cout << "Ìø¹ý" << symbolTable[i].first;
+					++i;
+				}
 			}
 		}
 		cout << endl;
@@ -336,6 +353,7 @@ int main()
 	generAnalyTable();
 
 	ifstream infile("test5.txt");
+
 	if (!infile.is_open())
 	{
 		cout << "File Not Found£¡";
