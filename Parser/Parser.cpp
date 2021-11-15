@@ -5,7 +5,6 @@
 #include <map>
 #include <set>
 #include <vector>
-#include <stack>
 #include <iomanip>
 #define mp make_pair
 
@@ -18,7 +17,6 @@ map<string, set<string>>follow; //FOLLOW集
 map<pair<string, string>, string>analyTable; //分析表
 vector<pair<string, string>>symbolTable; //符号表
 map<string, bool>terSymbol; //终结符号表
-map<string, bool>visit; //标记某非终结符号是否访问过
 map<string, int>preSize; //存储上一次FOLLOW集元素个数
 
 /// @brief 构造变换后的文法产生式及终结符号表
@@ -125,7 +123,7 @@ void constrFollow(const string& left)
 				string symbol;
 				bool epsilon = true; //是否会产生ε
 
-				while (k < l) 
+				while (k < l)
 				{
 					symbol = string(1, right[k]);
 					if (terSymbol[symbol] != true) //不是终结符
@@ -167,15 +165,9 @@ void generaFollow()
 	while (flag) //一轮循环中如果没有非终结符的FOLLOW加入新符号，则说明FOLLOW集构造完成
 	{
 		flag = false;
-		visit.clear();
 		for (const auto& i : production)
 		{
-			if (visit[i.first]) continue; //已访问过，则跳过
-			visit[i.first] = true;
 			constrFollow(i.first);
-		}
-		for (const auto& i : production)
-		{
 			if (follow[i.first].size() > preSize[i.first]) flag = true; //如果FOLLOW集加入新符号
 			preSize[i.first] = follow[i.first].size();
 		}
@@ -285,14 +277,14 @@ void analyse(ifstream& infile)
 	cout.setf(ios::left); //左对齐输出
 
 	cout << setw(15) << "栈" << setw(30) << "输入" << "输出" << endl;
-	
+
 	while (i < tableSize)
 	{
 		string output = "";
 
 		for (const auto& j : analyStack) output += j;
 		cout << setw(15) << output;
-		
+
 		output = "";
 		for (int k = i; k < tableSize; ++k) output += symbolTable[k].first;
 		cout << setw(30) << output;
